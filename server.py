@@ -1,5 +1,5 @@
 import json
-import os   # to get the environment variable TEST_MODE
+import os  # to get the environment variable TEST_MODE
 from flask import Flask, render_template, request, redirect, flash, url_for
 from pathlib import Path
 from datetime import datetime
@@ -7,14 +7,17 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'something_special'
 project_dir = Path(__file__).parent
+
+
 def loadClubs():
     if os.environ.get('TEST_MODE'):
         data_path = 'tests/config_test_clubs.json'
     else:
         data_path = 'clubs.json'
     with open(data_path) as c:
-         listOfClubs = json.load(c)['clubs']
-         return listOfClubs
+        listOfClubs = json.load(c)['clubs']
+        return listOfClubs
+
 
 def loadCompetitions():
     if os.environ.get('TEST_MODE'):
@@ -22,20 +25,29 @@ def loadCompetitions():
     else:
         data_path = 'competitions.json'
     with open(data_path) as comps:
-         listOfCompetitions = json.load(comps)['competitions']
-         return listOfCompetitions
-
+        listOfCompetitions = json.load(comps)['competitions']
+        return listOfCompetitions
 
 
 competitions = loadCompetitions()
 clubs = loadClubs()
 
 
+def update_club_data(clubs):
+    if os.environ.get('TEST_MODE'):
+        data_path = 'tests/config_test_clubs.json'
+    else:
+        data_path = 'clubs.json'
+    with open(data_path, 'w') as f:
+        json.dump({"clubs": clubs}, f, indent=4)
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/showSummary',methods=['POST'])
+
+@app.route('/showSummary', methods=['POST'])
 def showSummary():
     """
     Bring the user to the welcome page after login and display the summary.
@@ -47,11 +59,11 @@ def showSummary():
         return redirect(url_for('index'))
     club = club[0]
 
-    return render_template('welcome.html',club=club,competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=competitions)
 
 
 @app.route('/book/<competition>/<club>')
-def book(competition,club):
+def book(competition, club):
     foundClub = [c for c in clubs if c['name'] == club][0]
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
     if foundClub and foundCompetition:
@@ -60,7 +72,7 @@ def book(competition,club):
         if competition_date < datetime.now():
             flash("Sorry, you can't book a past event.")
             return render_template('welcome.html', club=foundClub, competitions=competitions)
-        return render_template('booking.html',club=foundClub,competition=foundCompetition)
+        return render_template('booking.html', club=foundClub, competition=foundCompetition)
     else:
         flash("Something went wrong-please try again")
         return render_template('welcome.html', club=club, competitions=competitions)
@@ -70,10 +82,7 @@ def book(competition,club):
 def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
-    print("Request form club:", request.form['club'])
-    print("Clubs:", clubs)
     placesRequired = int(request.form['places'])
-    print(f"trying to book {placesRequired} places")
 
     # Check if the competition datetime - if it is in the past, don't allow booking
     competition_date = datetime.fromisoformat(competition['date'])
@@ -81,11 +90,26 @@ def purchasePlaces():
         flash("Sorry, you can't book a past event.")
         return render_template('welcome.html', club=club, competitions=competitions)
 
+    # Check the number of places available for reservation
+    # Obtain the number of places already reserved for this competition
+    current_booked = club.get('competitions_booked', {}).get(competition['name'], 0)
+    total_booked = current_booked + placesRequired
+
+    if total_booked > 12:
+        flash(f"You can't book more than 12 places for {competition['name']}.")
+        return render_template('welcome.html', club=club, competitions=competitions)
+
     # Calculate the new number of places and points
     new_competition_places = int(competition['numberOfPlaces']) - placesRequired
     new_club_points = int(club['points']) - placesRequired
     print(f"new competition places: {new_competition_places}")
     print(f"new club points: {new_club_points}")
+
+    # Update of the total number of places reserved by the club for this competition
+    club.setdefault('competitions_booked', {})[competition['name']] = total_booked
+
+    # Save updated data in JSON files
+    update_club_data(clubs)
 
     error_messages = []
 
@@ -105,7 +129,7 @@ def purchasePlaces():
         club['points'] = new_club_points
         competition['numberOfPlaces'] = new_competition_places
         flash("Great-booking complete ! ")
-        #flash(f'you have booked {placesRequired} places for {competition["name"]}')
+        # flash(f'you have booked {placesRequired} places for {competition["name"]}')
         print("Great-booking complete!")
         return render_template('welcome.html', club=club, competitions=competitions)
     else:
@@ -121,6 +145,8 @@ def purchasePlaces():
 @app.route('/clubs', methods=['GET'])
 def showClubs():
     return render_template('clubs.html', clubs=clubs)
+
+
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
