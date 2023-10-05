@@ -1,0 +1,20 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="LITReview.appreview.models.UserFollows.objects" />
+          <option value="LITReview.appreview.models.Review.objects" />
+          <option value="LITReview.appreview.models.Ticket.objects" />
+          <option value="LITReview.appreview.views.HttpResponseForbidden" />
+          <option value="LITReview.appreview.views.CommentForm" />
+          <option value="LITReview.appreview.views.Post" />
+          <option value="LITReview.appreview.models.Photo.objects" />
+          <option value="authentication.models.User" />
+          <option value="softdesk_api.sd_support.serializers.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

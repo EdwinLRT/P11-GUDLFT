@@ -1,5 +1,5 @@
 import json
-from flask import Flask,render_template,request,redirect,flash,url_for
+from flask import Flask, render_template, request, redirect, flash, url_for
 
 
 def loadClubs():
@@ -26,7 +26,16 @@ def index():
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
-    club = [club for club in clubs if club['email'] == request.form['email']][0]
+    """
+    Bring the user to the welcome page after login and display the summary.
+    Also check if the user email is in the list.
+    """
+    club = [club for club in clubs if club['email'] == request.form['email']]
+    if not club:
+        flash('E-mail not found. Please try again.')
+        return redirect(url_for('index'))
+    club = club[0]
+
     return render_template('welcome.html',club=club,competitions=competitions)
 
 
@@ -46,6 +55,11 @@ def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
+    club
+    print(placesRequired)
+    if placesRequired > club['points']:
+        flash(f"You have only {club['points']} points which is not enough to book {placesRequired} places.")
+        return render_template('booking.html', club=club, competition=competition)
     competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
