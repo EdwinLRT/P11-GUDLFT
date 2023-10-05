@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Summary | GUDLFT Registration</title>
+</head>
+<body>
+
+	<h3>Clubs:</h3>
+	<ul>
+		{% for club in clubs%}
+		<li>
+			{{club['name']}}<br/>
+			Email: {{club['email']}}</br>
+			Number of Points: {{club['points']}}
+		</li>
+		<hr/>
+		{% endfor %}
+	</ul>
+
+</body>
+</html>
