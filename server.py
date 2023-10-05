@@ -50,18 +50,38 @@ def book(competition,club):
         return render_template('welcome.html', club=club, competitions=competitions)
 
 
-@app.route('/purchasePlaces',methods=['POST'])
+@app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
-    club
-    print(placesRequired)
-    if placesRequired > club['points']:
-        flash(f"You have only {club['points']} points which is not enough to book {placesRequired} places.")
+
+    # Calcul du nouveau nombre de places et de points
+    new_competition_places = int(competition['numberOfPlaces']) - placesRequired
+    new_club_points = int(club['points']) - placesRequired
+
+    error_messages = []
+
+    # Vérification si le club a suffisamment de points
+    if new_club_points < 0:
+        error_messages.append("You don't have enough points to book the seats requested")
+
+    # Vérification si la compétition a suffisamment de places
+    if new_competition_places < 0:
+        error_messages.append(
+            f"There are only {competition['numberOfPlaces']} places available for this competition. You cannot book {placesRequired} places.")
+
+    if not error_messages:
+        # Si tout est correct, effectuez la mise à jour
+        club['points'] = new_club_points
+        competition['numberOfPlaces'] = new_competition_places
+        flash('Great-booking complete!')
+    else:
+        # Si des erreurs se produisent, affichez-les
+        for error in error_messages:
+            flash(error)
         return render_template('booking.html', club=club, competition=competition)
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    flash('Great-booking complete!')
+
     return render_template('welcome.html', club=club, competitions=competitions)
 
 
