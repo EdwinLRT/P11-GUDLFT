@@ -2,6 +2,7 @@ import json
 import os   # to get the environment variable TEST_MODE
 from flask import Flask, render_template, request, redirect, flash, url_for
 from pathlib import Path
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'something_special'
@@ -54,6 +55,11 @@ def book(competition,club):
     foundClub = [c for c in clubs if c['name'] == club][0]
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
     if foundClub and foundCompetition:
+        # Check if the competition datetime - if it is in the past, don't allow booking
+        competition_date = datetime.fromisoformat(foundCompetition['date'])
+        if competition_date < datetime.now():
+            flash("Sorry, you can't book a past event.")
+            return render_template('welcome.html', club=foundClub, competitions=competitions)
         return render_template('booking.html',club=foundClub,competition=foundCompetition)
     else:
         flash("Something went wrong-please try again")
@@ -67,8 +73,13 @@ def purchasePlaces():
     print("Request form club:", request.form['club'])
     print("Clubs:", clubs)
     placesRequired = int(request.form['places'])
-
     print(f"trying to book {placesRequired} places")
+
+    # Check if the competition datetime - if it is in the past, don't allow booking
+    competition_date = datetime.fromisoformat(competition['date'])
+    if competition_date < datetime.now():
+        flash("Sorry, you can't book a past event.")
+        return render_template('welcome.html', club=club, competitions=competitions)
 
     # Calculate the new number of places and points
     new_competition_places = int(competition['numberOfPlaces']) - placesRequired
@@ -93,7 +104,8 @@ def purchasePlaces():
         # if no errors, update the number of places and points
         club['points'] = new_club_points
         competition['numberOfPlaces'] = new_competition_places
-        flash('Great-booking complete!')
+        flash("Great-booking complete ! ")
+        #flash(f'you have booked {placesRequired} places for {competition["name"]}')
         print("Great-booking complete!")
         return render_template('welcome.html', club=club, competitions=competitions)
     else:
