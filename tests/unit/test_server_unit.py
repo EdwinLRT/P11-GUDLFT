@@ -25,6 +25,17 @@ def client():
         yield client
 
 
+def test_index_page(client):
+    response = client.get('/')
+    assert response.status_code == 200
+    assert b"Welcome" in response.data
+
+def test_clubs_page(client):
+    response = client.get('/clubs')
+    assert response.status_code == 200
+    assert b"Clubs" in response.data
+
+
 def test_valid_email():
     with server.app.test_client() as client:
         response = client.post('/showSummary', data={"email": "cluba@email.com"}, follow_redirects=True)
@@ -53,9 +64,10 @@ def test_purchase_places_page(client, mocker):
         "competition": competition,
         "places": points})
     data = response.data.decode()
-
+    print(data)
     assert response.status_code == 200
-    assert "<li>Great-booking complete!</li>" in data
+    assert response.status_code == 200
+    assert "<li>Great-booking complete ! </li>" in data
 
 
 def test_booking_more_places_than_points(client, mocker):
@@ -149,7 +161,7 @@ def test_club_points_decrement_on_reservation(client, mocker):
     # Data to use in the test
     club_name = "Club D"
     initial_club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
-    competition_name = "Competition D"
+    competition_name = "Competition C"
 
     # Define the number of places to book
     placesRequired = 3
@@ -166,6 +178,32 @@ def test_club_points_decrement_on_reservation(client, mocker):
 
     # Assertions
     assert new_club_points == initial_club_points - placesRequired
+
+def test_cant_book_passed_events (client, mocker) :
+    # Mocking the data
+    mocker.patch.object(server, "project_dir", tests_unit_dir)
+    mocker.patch.object(server, "clubs", clubs_data)
+    mocker.patch.object(server, "competitions", competitions_data)
+
+    # Data to use in the test
+    club_name = "Club B"
+    club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
+    competition_name = "Competition D"
+    # Trying to book places in a passed event
+    places_to_book = 1
+
+    # Sending the request
+    response = client.post("/purchasePlaces", data={
+        "club": club_name,
+        "competition": competition_name,
+        "places": str(places_to_book)  # Convert to string since it's from a form
+    })
+    data = response.data.decode()
+    print(data)
+
+    # Assertions
+    assert response.status_code == 200
+    assert "<li>Sorry, you can&#39;t book a past event.</li>" in data
 
 
 
