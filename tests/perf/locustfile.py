@@ -19,7 +19,7 @@ class ProjectPerfTest(HttpUser):
     @task
     def purchase_places_page(self):
         club = "Simply Lift"
-        competition = "Spring Festival"
+        competition = "Fall Classic"
         points = 1
         self.client.post("purchasePlaces", data={
             "club": club,
@@ -28,7 +28,7 @@ class ProjectPerfTest(HttpUser):
 
     @task
     def book_competition_club_page(self):
-        self.client.get("book/Spring%20Festival/Simply%20Lift")
+        self.client.get("book/Fall%20Classic/Simply%20Lift")
 
     @task
     def logout_page(self):

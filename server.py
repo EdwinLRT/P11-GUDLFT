@@ -11,7 +11,7 @@ project_dir = Path(__file__).parent
 
 def loadClubs():
     if os.environ.get('TEST_MODE'):
-        data_path = 'tests/config_test_clubs.json'
+        data_path = 'tests/unit/config_test_clubs.json'
     else:
         data_path = 'clubs.json'
     with open(data_path) as c:
@@ -21,7 +21,7 @@ def loadClubs():
 
 def loadCompetitions():
     if os.environ.get('TEST_MODE'):
-        data_path = 'tests/config_test_competitions.json'
+        data_path = 'tests/unit/config_test_competitions.json'
     else:
         data_path = 'competitions.json'
     with open(data_path) as comps:
@@ -30,12 +30,14 @@ def loadCompetitions():
 
 
 competitions = loadCompetitions()
+print(competitions)
 clubs = loadClubs()
+print(clubs)
 
 
 def update_club_data(clubs):
     if os.environ.get('TEST_MODE'):
-        data_path = 'tests/config_test_clubs.json'
+        data_path = 'tests/unit/config_test_clubs.json'
     else:
         data_path = 'clubs.json'
     with open(data_path, 'w') as f:
@@ -109,7 +111,11 @@ def purchasePlaces():
     club.setdefault('competitions_booked', {})[competition['name']] = total_booked
 
     # Save updated data in JSON files
-    update_club_data(clubs)
+    if os.environ.get('TEST_MODE'):
+        print("TEST MODE - not saving data to JSON files")
+    else:
+        print("Saving data to JSON files")
+        update_club_data(clubs)
 
     error_messages = []
 

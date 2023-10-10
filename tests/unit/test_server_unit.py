@@ -5,18 +5,41 @@ import os
 import json
 import server
 
-os.environ['TEST_MODE'] = '1'
 
-tests_unit_dir = Path(__file__).parent
-def load_test_data(filename, key):
-    with open(filename, 'r') as f:
+def set_test_mode():
+    os.environ['TEST_MODE'] = '1'
+
+
+set_test_mode()
+
+
+def check_test_mode():
+    if os.environ.get('TEST_MODE'):
+        print("Running in TEST_MODE")
+    else:
+        print("TEST_MODE not activated")
+
+
+def load_test_data(filepath, key):
+    with open(filepath, 'r') as f:
         data = json.load(f)
     return data[key]
 
 
-competitions_data = load_test_data('tests/config_test_competitions.json', 'competitions')
-clubs_data = load_test_data('tests/config_test_clubs.json', 'clubs')
+@pytest.fixture
+def mock_data(mocker):
+    tests_unit_dir = Path(__file__).parent
 
+    # load test data
+    competitions_data = load_test_data(tests_unit_dir / 'config_test_competitions.json', 'competitions')
+    clubs_data = load_test_data(tests_unit_dir / 'config_test_clubs.json', 'clubs')
+
+    mocker.patch.object(server, "project_dir", tests_unit_dir)
+    mocker.patch.object(server, "clubs", clubs_data)
+    mocker.patch.object(server, "competitions", competitions_data)
+
+    # Return mock data for further use in test if needed
+    return competitions_data, clubs_data
 
 @pytest.fixture
 def client():
@@ -29,6 +52,7 @@ def test_index_page(client):
     response = client.get('/')
     assert response.status_code == 200
     assert b"Welcome" in response.data
+
 
 def test_clubs_page(client):
     response = client.get('/clubs')
@@ -50,10 +74,8 @@ def test_invalid_email():
         assert b"E-mail not found" in response.data  # checking that the flash response contains the error message
 
 
-def test_purchase_places_page(client, mocker):
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
+def test_purchase_places_page(client, mock_data):
+    os.environ['TEST_MODE'] = '1'
 
     club = "Club A"
     competition = "Competition A"
@@ -70,13 +92,10 @@ def test_purchase_places_page(client, mocker):
     assert "<li>Great-booking complete ! </li>" in data
 
 
-def test_booking_more_places_than_points(client, mocker):
-    # Mocking the data
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
+def test_booking_more_places_than_points(client, mock_data):
 
     # Data to use in the test
+    competitions_data, clubs_data = mock_data
     club_name = "Club B"
     club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
     competition_name = "Competition A"
@@ -97,13 +116,11 @@ def test_booking_more_places_than_points(client, mocker):
     assert "You dont have enough points to book the seats requested" in data
 
 
-def test_booking_more_places_than_competition_places(client, mocker):
-    # Mocking the data
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
+def test_booking_more_places_than_competition_places(client, mock_data):
+
 
     # Data to use in the test
+    competitions_data, clubs_data = mock_data
     club_name = "Club A"
     club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
     competition_name = "Competition B"
@@ -124,13 +141,9 @@ def test_booking_more_places_than_competition_places(client, mocker):
     assert "You cant book more places than there are available in the competition" in data
 
 
-def test_deduction_of_points_on_reservation(client, mocker):
-    # Mocking the data
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
-
+def test_deduction_of_points_on_reservation(client, mock_data):
     # Data to use in the test
+    competitions_data, clubs_data = mock_data
     club_name = "Club A"
     initial_club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
     competition_name = "Competition A"
@@ -152,13 +165,10 @@ def test_deduction_of_points_on_reservation(client, mocker):
     assert initial_club_points - places_to_book == updated_club_points
 
 
-def test_club_points_decrement_on_reservation(client, mocker):
-    # Mocking the data
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
+def test_club_points_decrement_on_reservation(client, mock_data):
 
     # Data to use in the test
+    competitions_data, clubs_data = mock_data
     club_name = "Club D"
     initial_club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
     competition_name = "Competition C"
@@ -179,13 +189,11 @@ def test_club_points_decrement_on_reservation(client, mocker):
     # Assertions
     assert new_club_points == initial_club_points - placesRequired
 
-def test_cant_book_passed_events (client, mocker) :
-    # Mocking the data
-    mocker.patch.object(server, "project_dir", tests_unit_dir)
-    mocker.patch.object(server, "clubs", clubs_data)
-    mocker.patch.object(server, "competitions", competitions_data)
+
+def test_cant_book_passed_events(client, mock_data):
 
     # Data to use in the test
+    competitions_data, clubs_data = mock_data
     club_name = "Club B"
     club_points = [club['points'] for club in clubs_data if club['name'] == club_name][0]
     competition_name = "Competition D"
@@ -204,7 +212,6 @@ def test_cant_book_passed_events (client, mocker) :
     # Assertions
     assert response.status_code == 200
     assert "<li>Sorry, you can&#39;t book a past event.</li>" in data
-
 
 
 del os.environ['TEST_MODE']

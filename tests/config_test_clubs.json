@@ -1,8 +1,0 @@
-{
-  "clubs": [
-    {"name": "Club A", "email": "cluba@email.com", "points": 10},
-    {"name": "Club B", "email": "clubb@email.com", "points": 2},
-    {"name": "Club C", "email": "clubc@email.com", "points": 8},
-    {"name": "Club D", "email": "clubd@email.com", "points": 15}
-  ]
-}
