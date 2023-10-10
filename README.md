@@ -8,8 +8,8 @@
 Güdlft, a digital platform to coordinate strength competitions in North America and Australia.   
 <br /></p>
 </div>
-<img align="center" src="https://thumbs.dreamstime.com/b/weightlifting-vecteur-de-sport-silhouette-d-illustration-bodybuilder-119340954.jpg">
-<a href="https://images.unsplash.com/photo-1603736087997-5daec6092347?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"><h6> Credit : ID 119340954©  [Iland](https://fr.dreamstime.com/iland_info)| Dreamstime.com</small></h6>
+<img align="center" src="https://thumbs.dreamstime.com/b/weightlifting-vecteur-de-sport-silhouette-d-illustration-bodybuilder-119340954.jpg"
+<h6> Credit : ID 119340954©  [Iland](https://fr.dreamstime.com/iland_info)| Dreamstime.com</small></h6>
 
 
 
@@ -80,7 +80,7 @@ Generate a test coverage report and a performance report using Pytest and  Locus
     coverage html  
     open htmlcov/index.html
    ```
-
+<img src="https://i.ibb.co/gMLMCTX/LAURENT-EDWIN-2-rapport-test-102023.png">
 ---
 
 ## Run Locust performance test
@@ -90,3 +90,4 @@ Generate a test coverage report and a performance report using Pytest and  Locus
    cd perf
    locust
    ```
+<img src="https://i.ibb.co/4mXK5mM/Capture-d-e-cran-2023-10-10-a-20-44-34.png">
